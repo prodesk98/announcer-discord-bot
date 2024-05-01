@@ -1,6 +1,6 @@
 FROM python:3.11-slim-buster
 
-RUN apt-get update && apt-get install -y mpv ffmpeg
+RUN apt-get update && apt-get install -y ffmpeg
 
 WORKDIR /app
 
