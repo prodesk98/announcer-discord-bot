@@ -54,5 +54,12 @@ async def talk(interaction: Interaction, character: CharacterEnum, text: str) ->
         await interaction.edit_original_response(content="An error occurred")
 
 
+@talk.error
+async def talk_error(ctx: commands.Context, error: commands.CommandError) -> None:
+    if isinstance(error, commands.CommandOnCooldown):
+        await ctx.send(f"Command on cooldown, try again in {error.retry_after:.0f} seconds")
+    else:
+        await ctx.send("An error occurred")
+
 if __name__ == "__main__":
     bot.run(env.DISCORD_TOKEN)
