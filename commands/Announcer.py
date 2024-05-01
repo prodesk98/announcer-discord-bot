@@ -47,7 +47,7 @@ class Voiceover:
             )
         )
 
-    async def speak(self, interaction: Interaction, char: str, text: str = Field(..., max_length=75)) -> None:
+    async def speak(self, interaction: Interaction, char: str, text: str) -> None:
         audio = await self.generate_voice(_search_voice(char), text)
         tmp_audio = NamedTemporaryFile(delete=True, suffix=".mp3")
         tmp_audio.write(audio)

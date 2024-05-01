@@ -44,6 +44,9 @@ bot = Bot()
 )
 @app_commands.checks.cooldown(1, 60.0, key=lambda i: (i.guild_id, i.user.id))
 async def talk(interaction: Interaction, character: CharacterEnum, text: str) -> None:
+    if len(text) > 100:
+        raise ValueError("Text is too long, max 100 characters")
+
     await interaction.response.defer(ephemeral=False)  # type: ignore
 
     voiceover = Voiceover()
