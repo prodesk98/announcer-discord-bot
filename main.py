@@ -42,7 +42,7 @@ bot = Bot()
     name="talk",
     description="Talk to the bot",
 )
-async def talk(interaction: Interaction, character: CharacterEnum = CHARACTERS[0], text: str = None) -> None:
+async def talk(interaction: Interaction, character: CharacterEnum, text: str) -> None:
     await interaction.response.defer(ephemeral=False)  # type: ignore
 
     voiceover = Voiceover()
