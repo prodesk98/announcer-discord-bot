@@ -20,4 +20,3 @@ class Environment(BaseModel):
 
 
 env = Environment()
-print(env)
