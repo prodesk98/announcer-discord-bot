@@ -53,4 +53,4 @@ class Voiceover:
         tmp_audio.write(audio)
         tmp_audio.seek(0)
         await PlayAudio(interaction, tmp_audio.name)
-        await interaction.edit_original_response(content=f"**playing voice**: {text}")
+        await interaction.edit_original_response(content=f"**[{char}] playing voice**: {text}")
