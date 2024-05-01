@@ -1,43 +1,53 @@
-from typing import AsyncIterator
-
-import httpx
+from asyncio import to_thread
 from elevenlabs import VoiceSettings, Voice
 from pydantic import Field
 
 from discord import Interaction
 
-from elevenlabs.client import AsyncElevenLabs
+from elevenlabs.client import ElevenLabs
 from elevenlabs import stream
 
+from tempfile import NamedTemporaryFile
+
 from config import env
-from models import CharacterModel
+from utils import PlayAudio
 
-client_elevenlabs = AsyncElevenLabs(
-    api_key=env.ELEVENLABS_TOKEN,
-    httpx_client=httpx.AsyncClient()
-)
+client_eleven_labs = ElevenLabs(api_key=env.ELEVENLABS_TOKEN)
 
 
-def _search_voice(c: str) -> CharacterModel:
+def _search_voice(c: str) -> str:
     for voice in env.VOICES:
         if voice.voice_name == c:
-            return voice
+            return voice.voice_id
     raise ValueError(f"Voice {c} not found")
 
 
 class Voiceover:
     @staticmethod
-    async def generate_voice(character: CharacterModel, text: str) -> bytes:
-        audio = await client_elevenlabs.generate(
+    def _generate(text: str, voice: Voice) -> bytes:
+        audio = client_eleven_labs.generate(text=text, voice=voice, stream=True, model="eleven_multilingual_v2")
+        return stream(audio)
+
+    @staticmethod
+    async def generate_voice(voice_id: str, text: str) -> bytes:
+        return await to_thread(
+            Voiceover._generate,
             text=text,
             voice=Voice(
-                voice_id=character.voice_id,
-                settings=VoiceSettings(stability=0.5, similarity_boost=0.75, style=0.0, use_speaker_boost=True)
+                voice_id=voice_id,
+                settings=VoiceSettings(
+                    stability=0.5,
+                    similarity_boost=0.75,
+                    style=0.0,
+                    use_speaker_boost=True,
+                ),
             )
         )
-        return stream(audio)  # type: ignore
 
-    async def speak(self, interaction: Interaction, char: str, text: str = Field(..., max_length=360)) -> None:
+    async def speak(self, interaction: Interaction, char: str, text: str = Field(..., max_length=75)) -> None:
         audio = await self.generate_voice(_search_voice(char), text)
-        print(audio)
-        await interaction.edit_original_response(content="**playing voice**: " + text)
+        tmp_audio = NamedTemporaryFile(delete=True, suffix=".mp3")
+        tmp_audio.write(audio)
+        tmp_audio.seek(0)
+        await PlayAudio(interaction, tmp_audio.name)
+        await interaction.edit_original_response(content=f"**playing voice**: {text}")
