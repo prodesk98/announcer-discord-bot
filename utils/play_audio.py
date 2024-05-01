@@ -19,7 +19,7 @@ async def PlayAudio(interaction: Interaction, audio_path: str | PathLike) -> Non
     source = FFmpegOpusAudio(
         executable="ffmpeg",
         source=audio_path,
-        **{'options': '-vn'}
+        **{'options': '-vn -af "volume=20dB"'}
     )
     if voice.is_playing():
         voice.stop()
