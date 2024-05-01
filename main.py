@@ -1,15 +1,22 @@
-from typing import Literal
+from enum import Enum
 
 import discord
 from discord import Interaction
 
 from discord.ext import commands
 from loguru import logger
+
 from commands import Voiceover
 from config import env
 
 intents = discord.Intents.default()
 intents.message_content = False
+CHARACTERS = [c.voice_name for c in env.VOICES]
+
+assert len(CHARACTERS) > 0, "No voices found"
+
+logger.info(f"Characters: {CHARACTERS}")
+CharacterEnum = Enum("CharacterEnum", {c: c for c in CHARACTERS})
 
 
 class Bot(commands.Bot):
@@ -35,11 +42,15 @@ bot = Bot()
     name="talk",
     description="Talk to the bot",
 )
-async def talk(interaction: Interaction, character: Literal["Hanzo", "Yuki"] = "Hanzo") -> None:
+async def talk(interaction: Interaction, character: CharacterEnum = CHARACTERS[0], text: str = None) -> None:
     await interaction.response.defer(ephemeral=False)  # type: ignore
 
     voiceover = Voiceover()
-    await voiceover.speak(interaction, character)
+    try:
+        await voiceover.speak(interaction, character.value, text)
+    except Exception as e:
+        logger.error(f"Error: {e}")
+        await interaction.edit_original_response(content="An error occurred")
 
 
 if __name__ == "__main__":
