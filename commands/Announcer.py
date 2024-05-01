@@ -5,7 +5,6 @@ from pydantic import Field
 from discord import Interaction
 
 from elevenlabs.client import ElevenLabs
-from elevenlabs import stream
 
 from tempfile import NamedTemporaryFile
 
@@ -25,8 +24,12 @@ def _search_voice(c: str) -> str:
 class Voiceover:
     @staticmethod
     def _generate(text: str, voice: Voice) -> bytes:
-        audio = client_eleven_labs.generate(text=text, voice=voice, stream=True, model="eleven_multilingual_v2")
-        return stream(audio)
+        audio_stream = client_eleven_labs.generate(text=text, voice=voice, stream=True, model="eleven_multilingual_v2")
+        audio_bytes = b""
+        for chunk in audio_stream:
+            if chunk is not None:
+                audio_bytes += chunk
+        return audio_bytes
 
     @staticmethod
     async def generate_voice(voice_id: str, text: str) -> bytes:
