@@ -1,6 +1,5 @@
 from asyncio import to_thread
 from elevenlabs import VoiceSettings, Voice
-from pydantic import Field
 
 from discord import Interaction
 
