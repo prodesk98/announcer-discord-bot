@@ -1,7 +1,7 @@
 from enum import Enum
 
 import discord
-from discord import Interaction, app_commands
+from discord import Interaction, app_commands, Embed
 
 from discord.ext import commands
 from loguru import logger
@@ -55,11 +55,20 @@ async def talk(interaction: Interaction, character: CharacterEnum, text: str) ->
 
 
 @talk.error
-async def talk_error(ctx: commands.Context, error: commands.CommandError) -> None:
-    if isinstance(error, commands.CommandOnCooldown):
-        await ctx.send(f"Command on cooldown, try again in {error.retry_after:.0f} seconds")
+async def talk_error(interaction: Interaction, error: Exception) -> None:
+    logger.error(f"Error: {error}")
+    if isinstance(error, app_commands.CommandOnCooldown):
+        await interaction.response.send_message(  # noqa
+            embed=Embed(
+                title="❌ Cooldown!",
+                description=f"Command on cooldown, try again in {error.retry_after:.0f} seconds",
+                color=0xE02B2B
+            ),
+            ephemeral=True
+        )
+        return
     else:
-        await ctx.send("An error occurred")
+        await interaction.edit_original_response(content=f"An error occurred: {error}")
 
 if __name__ == "__main__":
     bot.run(env.DISCORD_TOKEN)
