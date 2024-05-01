@@ -1,7 +1,7 @@
 from enum import Enum
 
 import discord
-from discord import Interaction
+from discord import Interaction, app_commands
 
 from discord.ext import commands
 from loguru import logger
@@ -42,6 +42,7 @@ bot = Bot()
     name="talk",
     description="Talk to the bot",
 )
+@app_commands.checks.cooldown(1, 60.0, key=lambda i: (i.guild_id, i.user.id))
 async def talk(interaction: Interaction, character: CharacterEnum, text: str) -> None:
     await interaction.response.defer(ephemeral=False)  # type: ignore
 
